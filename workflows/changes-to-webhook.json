@@ -1,0 +1,200 @@
+{
+  "name": "Job Change Feed \u2014 Changes To Webhook",
+  "nodes": [
+    {
+      "id": "ecaa5801-529b-4246-90cb-eb2cf320019c",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "cc3197f8-2241-4059-bfc9-eb794f2e7f73",
+      "name": "Daily schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        180
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "494d9415-0211-4b1b-b766-7f891cb26c2d",
+      "name": "Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        80
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "actor",
+              "name": "actorId",
+              "value": "SET_VERIFIED_ACTOR_ID",
+              "type": "string"
+            },
+            {
+              "id": "board",
+              "name": "boardUrl",
+              "value": "https://jobs.ashbyhq.com/ramp",
+              "type": "string"
+            },
+            {
+              "id": "watch",
+              "name": "watchId",
+              "value": "changes-to-webhook",
+              "type": "string"
+            },
+            {
+              "id": "webhook",
+              "name": "webhookUrl",
+              "value": "https://example.com/replace-with-your-webhook",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9a452e04-963d-4257-94ba-305ef01dc111",
+      "name": "Fetch job feed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        500,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://api.apify.com/v2/acts/' + encodeURIComponent($json.actorId) + '/run-sync-get-dataset-items' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "maxTotalChargeUsd",
+              "value": "0.02"
+            },
+            {
+              "name": "timeout",
+              "value": "120"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ boards: [$json.boardUrl], watchId: $json.watchId, mode: 'changes', emitInitial: false, maxJobsPerBoard: 2000 }) }}",
+        "options": {
+          "timeout": 150000
+        }
+      }
+    },
+    {
+      "id": "7427b30c-1516-466f-8057-b67ec7badd01",
+      "name": "Deliver changes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Configuration').first().json.webhookUrl }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "21ee16af-9a01-4de3-b0eb-5012f4a01068",
+      "name": "Setup instructions",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        100,
+        -390
+      ],
+      "parameters": {
+        "content": "## Configure before running\nPaid Actor is not live yet. Set actorId to the verified published Actor ID when available. Select an HTTP Header Auth credential on Fetch job feed: header Authorization, value Bearer YOUR_APIFY_TOKEN. Keep secrets in n8n credentials. The run cap is $0.02 for one board. Activate the schedule only after a successful manual test. First changes run establishes a baseline and may return zero items. Do not enable automatic retries for the paid request; inspect run charges after ambiguous failures. See README for delivery deduplication and sync-timeout limits.",
+        "height": 350,
+        "width": 650
+      }
+    }
+  ],
+  "connections": {
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily schedule": {
+      "main": [
+        [
+          {
+            "node": "Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuration": {
+      "main": [
+        [
+          {
+            "node": "Fetch job feed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch job feed": {
+      "main": [
+        [
+          {
+            "node": "Deliver changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "UTC"
+  },
+  "pinData": {},
+  "tags": []
+}
