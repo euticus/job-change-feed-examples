@@ -15,7 +15,7 @@ jobs:
       - name: Validate inactive templates and sample response
         run: |
           python3 - <<'PY'
-          import json, pathlib, urllib.request
+          import json, pathlib, urllib.request, urllib.error
           for path in pathlib.Path('workflows').glob('*.json'):
               data=json.loads(path.read_text())
               assert data['active'] is False
@@ -27,8 +27,14 @@ jobs:
                       assert all(edge['node'] in names for edge in branch)
               print('Valid structure:',path)
           url='https://job-change-feed.euticus.chatgpt.site/api/sample?source=ashby'
-          with urllib.request.urlopen(url,timeout=30) as response:
-              data=json.load(response)
+          request=urllib.request.Request(url,headers={"User-Agent":"JobChangeFeedHealth/0.1 (+https://github.com/euticus/job-change-feed-examples)","Accept":"application/json"})
+          try:
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  data=json.load(response)
+          except urllib.error.HTTPError as error:
+              print("Sample HTTP status:",error.code,"content-type:",error.headers.get("Content-Type"))
+              print(error.read(1000).decode("utf-8",errors="replace"))
+              raise
           assert data['kind']=='current_sample' and 0 < len(data['rows']) <= 5
           print('Public sample returns a valid response; this does not test paid fulfillment.')
           PY
