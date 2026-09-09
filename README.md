@@ -4,7 +4,7 @@ Daily company job data for recruiting workflows and agents, using Greenhouse, Le
 
 **Status: public sample available; paid Actor not yet launched.** The workflow files are prepared, inactive integration templates. They require a verified Actor ID and your own Apify credentials before execution. They have not yet been tested against a paid cloud deployment. They are not evidence of paying customers.
 
-[Try the public sample](https://job-change-feed.perky-jelly-6017.chatgpt.site) · [Setup guide](https://job-change-feed.perky-jelly-6017.chatgpt.site/guides)
+[Try the public sample](https://job-change-feed.euticus.chatgpt.site) · [Setup guide](https://job-change-feed.euticus.chatgpt.site/guides)
 
 ## Templates
 

@@ -26,7 +26,7 @@ jobs:
                   for branch in ports['main']:
                       assert all(edge['node'] in names for edge in branch)
               print('Valid structure:',path)
-          url='https://job-change-feed.perky-jelly-6017.chatgpt.site/api/sample?source=ashby'
+          url='https://job-change-feed.euticus.chatgpt.site/api/sample?source=ashby'
           with urllib.request.urlopen(url,timeout=30) as response:
               data=json.load(response)
           assert data['kind']=='current_sample' and 0 < len(data['rows']) <= 5
