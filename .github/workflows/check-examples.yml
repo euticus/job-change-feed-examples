@@ -2,8 +2,6 @@ name: Check published examples
 on:
   push:
   workflow_dispatch:
-  schedule:
-    - cron: '23 14 * * *'
 permissions:
   contents: read
 jobs:
